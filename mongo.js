@@ -31,6 +31,7 @@ exports.insert_comments = function(obj, callback) {
 		
 		db.collection("comments").insert(obj, function(err, result) {
 			console.log(result);
+			mongoclient.close();
 			if (callback) { return callback(); }
 		})
 	})
