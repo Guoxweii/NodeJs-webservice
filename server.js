@@ -10,15 +10,12 @@ var webSocketsServerPort = 1337;
 // websocket and http servers
 var webSocketServer = require('websocket').server;
 var http = require('http');
- 
+var mongo = require('./mongo.js')
 /**
  * Global variables
  */
-// latest 100 messages
-var history = [ ];
 // list of currently connected clients (users)
 var clients = [ ];
- 
 /**
  * Helper function for escaping input strings
  */
@@ -68,9 +65,10 @@ wsServer.on('request', function(request) {
     console.log((new Date()) + ' Connection accepted.');
  
     // send back chat history
-    if (history.length > 0) {
-        connection.sendUTF(JSON.stringify( { type: 'history', data: history} ));
-    }
+    mongo.find_all_comments(function(result) {
+        console.log(result);
+        connection.sendUTF(JSON.stringify( { type: 'history', data: result} ));
+    })
  
     // user sent some message
     connection.on('message', function(message) {
@@ -95,8 +93,7 @@ wsServer.on('request', function(request) {
                     author: userName,
                     color: userColor
                 };
-                history.push(obj);
-                history = history.slice(-100);
+                mongo.insert_comments(obj);
  
                 // broadcast message to all connected clients
                 var json = JSON.stringify({ type:'message', data: obj });
