@@ -125,11 +125,12 @@ app.configure(function(){
     app.use(express.bodyParser());
     app.use(app.router);
     app.set('views', __dirname + '/views');
-    app.set('view engine', 'jade');
+    app.set('view engine', 'ejs');
 });
 
-app.get('/user/:id', function(req, res){
+//routes
+app.get('/comments', function(req, res){
     mongo.find_all_comments(function(result){
-        res.send('user.jade', {comments: result});
+        res.render('comments.ejs', {comments: result});
     })
 });

@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Page Test</title>
+</head>
+<body>
+    <div class="description"></div>
+    <ul>
+    <% function data(data) { %>
+    	<% var dt = new Date(data.time) %>
+        <% var time = (dt.getHours() < 10 ? '0' + dt.getHours() : dt.getHours()) + ':' + (dt.getMinutes() < 10 ? '0' + dt.getMinutes() : dt.getMinutes()) %>
+        <li class="item" id="item_<%=data._id%>"><span><%=data.author%></span>@<%= time %>: <%= data.text %><span></span></li>
+	<% } %>
+	<% comments.map(data) %>
+    </ul>
+
+</body>
+</html>
