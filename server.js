@@ -9,7 +9,10 @@ var webSocketsServerPort = 1337;
  
 // websocket and http servers
 var webSocketServer = require('websocket').server;
-var http = require('http');
+var express = require('express')
+  , http = require('http');
+
+var app = express(); 
 var mongo = require('./mongo.js')
 /**
  * Global variables
@@ -32,9 +35,7 @@ colors.sort(function(a,b) { return Math.random() > 0.5; } );
 /**
  * HTTP server
  */
-var server = http.createServer(function(request, response) {
-    // Not important for us. We're writing WebSocket server, not HTTP server
-});
+var server = http.createServer(app);
 server.listen(webSocketsServerPort, function() {
     console.log((new Date()) + " Server is listening on port " + webSocketsServerPort);
 });
@@ -116,4 +117,19 @@ wsServer.on('request', function(request) {
         }
     });
  
+});
+
+//express configure
+app.configure(function(){
+    app.use(express.methodOverride());
+    app.use(express.bodyParser());
+    app.use(app.router);
+    app.set('views', __dirname + '/views');
+    app.set('view engine', 'jade');
+});
+
+app.get('/user/:id', function(req, res){
+    mongo.find_all_comments(function(result){
+        res.send('user.jade', {comments: result});
+    })
 });
