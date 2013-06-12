@@ -9,16 +9,16 @@ var webSocketsServerPort = 1337;
  
 // websocket and http servers
 var webSocketServer = require('websocket').server;
-var http = require('http');
- 
+var express = require('express')
+  , http = require('http');
+
+var app = express(); 
+var mongo = require('./mongo.js')
 /**
  * Global variables
  */
-// latest 100 messages
-var history = [ ];
 // list of currently connected clients (users)
 var clients = [ ];
- 
 /**
  * Helper function for escaping input strings
  */
@@ -35,9 +35,7 @@ colors.sort(function(a,b) { return Math.random() > 0.5; } );
 /**
  * HTTP server
  */
-var server = http.createServer(function(request, response) {
-    // Not important for us. We're writing WebSocket server, not HTTP server
-});
+var server = http.createServer(app);
 server.listen(webSocketsServerPort, function() {
     console.log((new Date()) + " Server is listening on port " + webSocketsServerPort);
 });
@@ -68,9 +66,10 @@ wsServer.on('request', function(request) {
     console.log((new Date()) + ' Connection accepted.');
  
     // send back chat history
-    if (history.length > 0) {
-        connection.sendUTF(JSON.stringify( { type: 'history', data: history} ));
-    }
+    mongo.find_all_comments(function(result) {
+        console.log(result);
+        connection.sendUTF(JSON.stringify( { type: 'history', data: result} ));
+    })
  
     // user sent some message
     connection.on('message', function(message) {
@@ -95,8 +94,7 @@ wsServer.on('request', function(request) {
                     author: userName,
                     color: userColor
                 };
-                history.push(obj);
-                history = history.slice(-100);
+                mongo.insert_comments(obj);
  
                 // broadcast message to all connected clients
                 var json = JSON.stringify({ type:'message', data: obj });
@@ -119,4 +117,19 @@ wsServer.on('request', function(request) {
         }
     });
  
+});
+
+//express configure
+app.configure(function(){
+    app.use(express.methodOverride());
+    app.use(express.bodyParser());
+    app.use(app.router);
+    app.set('views', __dirname + '/views');
+    app.set('view engine', 'jade');
+});
+
+app.get('/user/:id', function(req, res){
+    mongo.find_all_comments(function(result){
+        res.send('user.jade', {comments: result});
+    })
 });
